@@ -25,7 +25,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     @Override
     public Mono<CurrencyConversion> convertMoney(String currencyFrom, String currencyTo, BigDecimal amount) {
         return Mono.fromFuture(CompletableFuture.supplyAsync(() -> exchangeRateRepository.findByFromAndTo(currencyFrom, currencyTo)))
-                .doOnSubscribe(subscription -> log.debug("convertMoney() START currencyFrom: {} currencyTo: {} amount: {}", currencyFrom, currencyTo, amount))
+                .doOnSubscribe(subscription -> log.info("convertMoney() START currencyFrom: {} currencyTo: {} amount: {}", currencyFrom, currencyTo, amount))
                 .map(exchangeRateEntity -> CurrencyConversion.builder()
                         .amount(amount)
                         .currencyFrom(currencyFrom)
@@ -34,13 +34,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                         .totalCalculatedAmount(amount.multiply(exchangeRateEntity.getExchangeRate()))
                         .build())
                 .doOnError(throwable -> log.error("convertMoney() ERROR", throwable))
-                .doFinally(signalType -> log.debug("convertMoney() END"));
+                .doFinally(signalType -> log.info("convertMoney() END"));
     }
 
     @Override
     public Mono<ExchangeRateResponseDto> saveExchangeRate(ExchangeRateRequestDto requestDto) {
         return Mono.defer(() -> Mono.just(exchangeRateRepository.findById(requestDto.getId())))
-                .doOnSubscribe(subscription -> log.debug("saveExchangeRate() requestDto: {}", requestDto))
+                .doOnSubscribe(subscription -> log.info("saveExchangeRate() requestDto: {}", requestDto))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(exchangeRateEntity -> {
@@ -55,6 +55,6 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                         .currencyTo(exchangeRateEntity.getTo())
                         .build())
                 .doOnError(throwable -> log.error("saveExchangeRate() ERROR", throwable))
-                .doFinally(signalType -> log.debug("saveExchangeRate() END"));
+                .doFinally(signalType -> log.info("saveExchangeRate() END"));
     }
 }
